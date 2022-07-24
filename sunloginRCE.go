@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/axgle/mahonia"
 	"github.com/imroc/req/v3"
-	"net"
 	"net/url"
 	"os"
 	"regexp"
@@ -16,7 +15,7 @@ import (
 
 var addrs []string
 
-var beginTime time.Time
+var wg sync.WaitGroup
 
 var isExist bool
 
@@ -27,41 +26,21 @@ func NewSunLoginRce() *SunLoginRce {
 	return &SunLoginRce{}
 }
 
-func (s *SunLoginRce) ScanRce(ip string) {
-	beginTime = time.Now()
+func (s *SunLoginRce) ScanRce(ip string, ports string) {
 	fmt.Println("[INFO]:Scanning, Please wait...")
-	s.ScanPort(ip)
-	s.CheckRce(ip)
-	var timeDif = time.Now().Sub(beginTime)
-	fmt.Printf("[INFO]:Take %ss\n", strings.Split(timeDif.String(), ".")[0])
+	portsArray := strings.Split(ports, ",")
+	s.CheckRce(ip, portsArray)
 }
 
-func (s *SunLoginRce) ScanPort(ip string) {
-	var wg sync.WaitGroup
-	for i := 1; i <= 65535; i++ {
-		wg.Add(1)
-		go func(port int) {
-			defer wg.Done()
-			address := fmt.Sprintf("%s:%d", ip, port)
-			conn, err := net.DialTimeout("tcp", address, time.Second)
-			if err != nil {
-				return
-			} else {
-				conn.Close()
-				addrs = append(addrs, address)
-			}
-		}(i)
-	}
-	wg.Wait()
-}
-
-func (s *SunLoginRce) CheckRce(ip string) {
-	var wg sync.WaitGroup
+func (s *SunLoginRce) CheckRce(ip string, ports []string) {
 	client := req.C()
 	done := make(chan bool)
+	for _, port := range ports {
+		address := fmt.Sprintf("%s:%s", ip, port)
+		addrs = append(addrs, address)
+	}
 	for _, addr := range addrs {
 		wg.Add(1)
-
 		go func() {
 			wg.Wait()
 			done <- true
@@ -71,7 +50,6 @@ func (s *SunLoginRce) CheckRce(ip string) {
 			resp, err := client.R().Get("http://" + addr + "/cgi-bin/rpc?action=verify-haras")
 			if err != nil {
 				return
-
 			}
 			if resp.StatusCode == 200 && strings.Contains(resp.String(), "verify_string") {
 				add := strings.Split(addr, ":")
